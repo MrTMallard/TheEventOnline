@@ -1,9 +1,3 @@
-// TODO
-// Generate info about previous scores
-// Tidy up Console.logs
-// Fix CSS for mobiles
-
-
 // Auth Changes
 const loggedIn = document.querySelector('#logged-in');
 const loginDiv = document.querySelector('#login-div');
@@ -15,7 +9,7 @@ var weekTitle;
 var downloadCount;
 auth.onAuthStateChanged(async function (user) {
     if (user) {
-        console.log("User logged in:", user)
+        console.log("User logged in.")//:", user)
 
         // Hide Login box, show logged in message
         loggedIn.style.removeProperty("display");
@@ -35,13 +29,11 @@ auth.onAuthStateChanged(async function (user) {
         document.querySelector("#topMessage").innerText = message
         document.querySelector("#topMessage").parentElement.style.removeProperty("display")
         }
-        console.log("weekString/Title: ", weekString, weekTitle)
 
         // Setup userDoc = /users/UID/user/weekString
         userDoc = db.collection("users").doc(auth.getUid()).collection("user").doc(weekString)
         let userDocPromise = await userDoc.get()
         downloadCount = userDocPromise.data().downloadCount
-        console.log("downloadCount", downloadCount)
 
         let serverDoc = db.collection("users").doc(auth.getUid()).collection("server").doc(weekString)
         let serverDocUnsub = serverDoc.onSnapshot(doc => serverDocSnapshot(doc));
@@ -50,7 +42,7 @@ auth.onAuthStateChanged(async function (user) {
         // db.collection('users').doc(auth.getUid()).collection('user').doc("random").set({ unlockedTime: "Success!"});
 
     } else {
-        console.log("User logged out:", user)
+        console.log("User logged out.")//:", user)
 
         // Show login box, hide logged in message
         loggedIn.style.display = "none";
@@ -75,6 +67,6 @@ loginForm.addEventListener('submit', (e) => {
     const password = loginForm['login-password'].value;
 
     auth.signInWithEmailAndPassword(email, password).then(cred => {
-    })
+    }).catch(e => document.querySelector("#loginError").style.removeProperty("display"))
 
 })

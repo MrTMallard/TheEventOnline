@@ -61,7 +61,8 @@ const numofMins = 60
 function onSubmit() {
 
     function _submit(uploadEle, spanEle) {
-        if (uploadEle.files.length < 1) { console.log("No file selected."); return }
+        if (uploadEle.files.length < 1) { console.log("No file selected."); return 
+    }
 
         let file = uploadEle.files[0]
         let fn = spanEle.innerText
@@ -70,9 +71,7 @@ function onSubmit() {
         if(end){
         timing = Math.ceil( (end - new Date().getTime() / 1000) / 60).toString()
         }
-        console.log("Timing:", timing)
         let verbose_fn = weekString + "--" + dN + "--" + timing + "--" + Math.ceil(Math.random() * 100).toString() + "--" + fn
-        console.log(verbose_fn)
         let uploadTask = storage.ref("/submitted/" + weekString + "/" + verbose_fn).put(file)
 
         uploadTask.on('state_changed', function (snapshot) {
@@ -98,7 +97,6 @@ async function initDownloadButton() {
     // Get File Path
     let passphrasePromise = await db.collection("secrets").doc(weekString).get()
     let passphrase = passphrasePromise.data().pass
-    console.log("Passphrase: ", passphrase)
 
     if (!passphrase) {
         console.log("Error getting passphrase.")
@@ -114,7 +112,6 @@ async function initDownloadButton() {
 
     // Get File and link to Download button
     var fileName = filePath.split("/").reverse()[0]
-    console.log("Filename: ", fileName)
 
     storage.ref(filePath)
         .getDownloadURL()
@@ -155,10 +152,10 @@ const weekMessageDiv = document.querySelector('#week-message-div');
 var timer = document.querySelector('#timer');
 
 function serverDocSnapshot(snapshot) {
-    console.log("serverSnapshot: ", snapshot)
+    //console.log("serverSnapshot: ", snapshot)
     
     if (!snapshot || !snapshot.data() || Object.keys(snapshot.data()).length === 0) {
-        console.log("serverSnapshotData is empty / does not exist");
+        //console.log("serverSnapshotData is empty / does not exist");
         timer.style.display = "none";
         weekMessageDiv.style.removeProperty("display");
         if (sI) { clearInterval(sI); }
@@ -230,9 +227,36 @@ function onTimerExpire(){
 function onScoresSnapshot(snap){
 
 
-    console.log("ScoresSnapshot: ", snap)
+    //console.log("ScoresSnapshot: ", snap)
+        let a = snap.docs
 
-        snap.docs.forEach(  doc => {
+        if(a.length == 1 && a[0].id == "default" ){
+            console.log("No scores.")
+            return
+        }
+
+        document.body.querySelector("#previousScores").style.removeProperty("display")
+
+        
+        
+        // Reverse Sort the Score Docs based on Week ##.
+        a.sort(function(x, y) {
+
+            let xNum = parseInt(x.id.split(" ")[1])
+            let yNum = parseInt(y.id.split(" ")[1])
+
+            // Return statements opposite to normal due to reverse sort.
+            if (xNum < yNum) {
+              return 1;
+            }
+            if (xNum > yNum) {
+              return -1;
+            }
+            return 0;
+          });
+
+
+        a.forEach(  doc => {
 
             if( doc.id == "default"){
                 return
@@ -243,17 +267,16 @@ function onScoresSnapshot(snap){
             <h2>Score: {score}/100</h2>
             <p>{message}</p>
             </div>`
-            s = s.replace("{title}",doc.id)
+            s = s.replace("{title}", doc.id)
             s = s.replace("{score}",doc.data().score)
             s = s.replace("{message}",doc.data().message || "")
 
             let temp = document.createElement('div')
             temp.classList.add("container")
             temp.innerHTML = s;
-            const previousWeeksDiv = document.body.querySelector("#previousWeeks")
-            previousWeeksDiv.appendChild(temp)
-
-
+            const previousScoresDiv = document.body.querySelector("#previousScores")
+            previousScoresDiv.appendChild(temp)
+       
         }
 
 
@@ -263,8 +286,6 @@ function onScoresSnapshot(snap){
 
 
  
-
-    console.log("Scores??: ", snap.docs[0].id)
 
 
 }
